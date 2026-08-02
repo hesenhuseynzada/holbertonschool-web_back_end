@@ -1,3 +1,4 @@
+#/usr/bin/env python3
 from typing import List, Tuple
 a = 5
 b = 4
