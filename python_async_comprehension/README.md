@@ -1,0 +1,1 @@
+This module shows type-annotated asynchronous arguments
