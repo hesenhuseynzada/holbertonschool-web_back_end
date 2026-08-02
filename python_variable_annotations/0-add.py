@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-from typing import List, Tuple
-a = 5
-b = 4
-def add_numbers(numbers: List[float]) -> float:
-    return sum(numbers)   
-c = add_numbers([a, b])
+
+def add(a: float, b: float) -> float:
+    """ type-annotated function add"""
+    return a + b
