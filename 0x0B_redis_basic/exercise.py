@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 ''' Redis Module '''
-import redis
+import redis  # type: ignore[reportMissingImports]
 import uuid
 from typing import Union, Callable, Optional
 from functools import wraps
