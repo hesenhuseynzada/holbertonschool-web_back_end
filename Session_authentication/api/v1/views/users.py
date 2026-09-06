@@ -23,11 +23,12 @@ def view_one_user(user_id: str = None) -> str:
       - User ID
     Return:
       - User object JSON represented
+      - the authenticated User if <user_id> is equal to "me"
       - 404 if the User ID doesn't exist
     """
     if user_id is None:
         abort(404)
-    if user_id is "me":
+    if user_id == "me":
         current_user = getattr(request, 'current_user', None)
         if current_user is None:
             abort(404)
