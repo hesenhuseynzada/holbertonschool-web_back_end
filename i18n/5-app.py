@@ -2,10 +2,9 @@
 ''' Flask app '''
 
 from flask import Flask, request, render_template, g
-from flask_babel import Babel, gettext
+from flask_babel import Babel
 
 app = Flask(__name__)
-babel = Babel(app)
 
 
 class Config:
@@ -24,27 +23,6 @@ users = {
 }
 
 
-@app.before_request
-def before_request():
-    ''' def before request '''
-    g.user = get_user()
-
-
-@babel.localeselector
-def get_locale():
-    ''' return best languages '''
-    locale = request.args.get('locale')
-    if locale:
-        return locale
-    return request.accept_languages.best_match(app.config['LANGUAGES'])
-
-
-@app.route("/", methods=["GET"], strict_slashes=False)
-def hello_world():
-    ''' return the template '''
-    return render_template('5-index.html')
-
-
 def get_user():
     ''' return the right dictionary '''
     Id = request.args.get('login_as')
@@ -52,6 +30,29 @@ def get_user():
         return users[int(Id)]
     else:
         return None
+
+
+@app.before_request
+def before_request():
+    ''' def before request '''
+    g.user = get_user()
+
+
+def get_locale():
+    ''' return best languages '''
+    locale = request.args.get('locale')
+    if locale in Config.LANGUAGES:
+        return locale
+    return request.accept_languages.best_match(app.config['LANGUAGES'])
+
+
+babel = Babel(app, locale_selector=get_locale)
+
+
+@app.route("/", methods=["GET"], strict_slashes=False)
+def hello_world():
+    ''' return the template '''
+    return render_template('5-index.html')
 
 
 if __name__ == '__main__':
