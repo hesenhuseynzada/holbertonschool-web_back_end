@@ -5,7 +5,6 @@ from flask import Flask, request, render_template
 from flask_babel import Babel, gettext
 
 app = Flask(__name__)
-babel = Babel(app)
 
 
 class Config:
@@ -18,10 +17,12 @@ class Config:
 app.config.from_object(Config)
 
 
-@babel.localeselector
 def get_locale():
     ''' return best languages '''
     return request.accept_languages.best_match(Config.LANGUAGES)
+
+
+babel = Babel(app, locale_selector=get_locale)
 
 
 @app.route("/", methods=["GET"], strict_slashes=False)
