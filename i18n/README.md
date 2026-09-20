@@ -1,0 +1,1 @@
+basic i18n scripts
