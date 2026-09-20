@@ -5,8 +5,7 @@
 from flask import Flask, request, render_template, g
 from flask_babel import Babel
 from os import getenv
-from pytz import timezone
-import pytz.exceptions
+import pytz
 from typing import Union, Optional
 
 users = {
@@ -17,7 +16,6 @@ users = {
 }
 
 app = Flask(__name__)
-babel = Babel(app)
 
 
 class Config(object):
@@ -35,26 +33,9 @@ app.config.from_object('6-app.Config')
 @app.route('/', methods=['GET'], strict_slashes=False)
 def index() -> str:
     """ GET /
-    Return: 5-index.html
+    Return: 6-index.html
     """
     return render_template('6-index.html')
-
-
-@babel.localeselector
-def get_locale() -> Optional[str]:
-    """ Determines best match for supported languages """
-    # check if there is a locale parameter/query string
-    if request.args.get('locale'):
-        locale = request.args.get('locale')
-        if locale in app.config['LANGUAGES']:
-            return locale
-    # check if there is a locale in an existing user's profile
-    elif g.user and g.user.get('locale')\
-            and g.user.get('locale') in app.config['LANGUAGES']:
-        return g.user.get('locale')
-    # default to return as a failsafe
-    else:
-        return request.accept_languages.best_match(app.config['LANGUAGES'])
 
 
 def get_user() -> Union[dict, None]:
@@ -64,8 +45,7 @@ def get_user() -> Union[dict, None]:
         user = int(request.args.get('login_as'))
         if user in users:
             return users.get(user)
-    else:
-        return None
+    return None
 
 
 @app.before_request
@@ -74,25 +54,39 @@ def before_request() -> None:
     g.user = get_user()
 
 
-@babel.timezoneselector
+def get_locale() -> Optional[str]:
+    """ Determines best match for supported languages """
+    # check if there is a locale parameter/query string
+    locale = request.args.get('locale')
+    if locale and locale in app.config['LANGUAGES']:
+        return locale
+    # check if there is a locale in an existing user's profile
+    if g.user and g.user.get('locale') in app.config['LANGUAGES']:
+        return g.user.get('locale')
+    # default to return as a failsafe
+    return request.accept_languages.best_match(app.config['LANGUAGES'])
+
+
 def get_timezone() -> Optional[str]:
     """ Determines best match for supported timezones """
     # check if there is a timezone parameter/query string
-    if request.args.get('timezone'):
-        timezone = request.args.get('timezone')
+    tz = request.args.get('timezone')
+    if tz:
         try:
-            return timezone(timezone).zone
+            return pytz.timezone(tz).zone
         except pytz.exceptions.UnknownTimeZoneError:
-            return None
+            pass
     # check if there is a timezone in an existing user's profile
-    elif g.user and g.user.get('timezone'):
+    if g.user and g.user.get('timezone'):
         try:
-            return timezone(g.user.get('timezone')).zone
+            return pytz.timezone(g.user.get('timezone')).zone
         except pytz.exceptions.UnknownTimeZoneError:
-            return None
+            pass
     # default to return as a failsafe
-    else:
-        return request.accept_languages.best_match(app.config['LANGUAGES'])
+    return app.config['BABEL_DEFAULT_TIMEZONE']
+
+
+babel = Babel(app, locale_selector=get_locale, timezone_selector=get_timezone)
 
 
 if __name__ == "__main__":
